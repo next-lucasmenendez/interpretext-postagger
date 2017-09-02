@@ -8,14 +8,10 @@ go get github.com/lucasmenendez/gopostagger
 
 ## Pretrained corpus
 
-Name | Alias to use | Language | Size | Link to model | Download corpus 
----- | ------------ | -------- | ---- | ------------- | --------------- 
-Brown | brown | English | 12.3 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/brown)  | [Link](https://drive.google.com/open?id=0B6YI1HgpnJOjTE5hbFhwVUhDR0k)
-Cess | cess | Spanish | 471.1 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/cess) | [Link](https://drive.google.com/file/d/0B6YI1HgpnJOjVTFDeVZ4ZjhXU28/view?usp=sharing)
-AnCora | ancora | Spanish | 550 Kb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/ancora) | [Link](https://drive.google.com/file/d/0B6YI1HgpnJOjUzBEbnZjQW93YlU/view?usp=sharing)
-Wikipedia | wikipedia-en | English | 1.6 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/wikipedia-en) | [Link](https://drive.google.com/file/d/0B6YI1HgpnJOjTXM0d3V2aGJhMWM/view)
-Wikipedia | wikipedia-es | Spanish | 2.7 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/wikipedia-es) | [Link](https://drive.google.com/open?id=0B6YI1HgpnJOjel94WFZRYTNfc28)
-Public domain books | books-es | Spanish | 500 Kb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/books-es) | [Link](https://drive.google.com/open?id=0B6YI1HgpnJOjakpESTZNc2RGU2M)
+Language | Alias | Corpus | Size | Link to model | Download corpus 
+-------- | ----- | ------ | ---- | ------------- | --------------- 
+English | en | Brown and Wikipedia | 12.1 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/en)  | [Link](https://drive.google.com/file/d/0B6YI1HgpnJOjcmRhaDc3MjhiSlk)
+Spanish | es | AnCora, Wikipedia and Public domain books  | 3.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/es) | [Link](https://drive.google.com/open?id=0B6YI1HgpnJOjZzJFWWNEamFubUU)
 
 ## Work with others corpus
 
