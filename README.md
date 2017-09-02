@@ -23,25 +23,25 @@ IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed`
 ## Example
 
 ```go
-package main
-
-import (
-	"fmt"
-	g "github.com/lucasmenendez/gopostagger"
-)
-
-func main() {
-	model := "wikipedia-es" //Set here model alias
-	rawSentence := "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor."
-
-	if s, err := g.TagSentence(rawSentence, model); err != nil {
-		fmt.Println(err)
-	} else {
-	    for _, word := range s {
-    		fmt.Printf("%s/%s ", word.Raw, word.Tag)
-    	}
-	}
-}
+    package main
+    
+    import (
+        "fmt"
+        g "github.com/lucasmenendez/gopostagger"
+    )
+    
+    func main() {
+        model := "es" //Set here model alias
+        rawSentence := "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor."
+    
+        if s, err := g.TagSentence(rawSentence, model); err != nil {
+            fmt.Println(err)
+        } else {
+            for _, word := range s {
+                fmt.Printf("%s/%s ", word.Raw, word.Tag)
+            }
+        }
+    }
 ```
 	
 ## Credits
