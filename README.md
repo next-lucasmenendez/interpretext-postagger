@@ -1,5 +1,5 @@
 # Gopostager
-HMM applied to Part-Of-Speech Tagging in Go.
+HMM applied to Part-Of-Speech Tagging in Go. Implementation of [*Part-of-Speech Tagging with Hidden Markov Models - Graham Neubig*](http://www.phontron.com/slides/nlp-programming-en-04-hmm.pdf)
     
 ## Installation
 ```
@@ -64,7 +64,3 @@ IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed`
         }
     }
 ```
-	
-## Credits
-- POS tagging Brown Corpus [Link](https://en.wikipedia.org/wiki/Brown_Corpus)
-- Part-of-Speech Tagging with Hidden Markov Models - Graham Neubig [Link](http://www.phontron.com/slides/nlp-programming-en-04-hmm.pdf)
