@@ -6,40 +6,61 @@ HMM applied to Part-Of-Speech Tagging in Go.
 go get github.com/lucasmenendez/gopostagger
 ```
 
-## Pretrained corpus
 
-Language | Alias | Corpus | Size | Link to model | Download corpus 
--------- | ----- | ------ | ---- | ------------- | --------------- 
-English | en | Brown and Wikipedia | 12.1 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/en)  | [Link](https://drive.google.com/file/d/0B6YI1HgpnJOjcmRhaDc3MjhiSlk)
-Spanish | es | AnCora, Wikipedia and Public domain books  | 3.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/models/es) | [Link](https://drive.google.com/open?id=0B6YI1HgpnJOjZzJFWWNEamFubUU)
+## Tested corpus
 
-## Work with others corpus
+ Name | Language | Size | Link corpus
+----- | ----- | ------ | ----
+Brown | en | 11.6 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/brown)
+AnCora | es | 0.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/ancora)
 
-Place all datasets files into a folder on `/corpus/<corpus_name>/`. 
+## Examples
 
-IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed` 
+### Tag sentence
+```go
+    package main
 
+    import (
+        "github.com/lucasmenendez/gotokenizer"
+        "github.com/lucasmenendez/gopostagger"
+        "fmt"
+    )
 
-## Example
+    func main() {
+        var s string = "El mundo del tatuaje es la forma de representación artística más expresiva que puede existir para un artista, puesto que su obra permanece inalterable de por vida."
+
+        if m, e := gopostagger.LoadModel("./models/ancora"); e != nil {
+            fmt.Println(e)
+        } else {
+            var tagger *gopostagger.Tagger = gopostagger.NewTagger(m)
+            var tokens []string = gotokenizer.Words(s)
+            var tagged [][]string = tagger.Tag(tokens)
+
+            for _, token := range tagged {
+                fmt.Printf("%q ", token)
+            }
+        }
+    }
+```
+
+### Train corpus
+IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed`
 
 ```go
     package main
-    
+
     import (
+        "github.com/lucasmenendez/gopostagger"
         "fmt"
-        g "github.com/lucasmenendez/gopostagger"
     )
-    
+
     func main() {
-        model := "es" //Set here model alias
-        rawSentence := "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor."
-    
-        if s, err := g.TagSentence(rawSentence, model); err != nil {
-            fmt.Println(err)
+        if m, e := gopostagger.Train("./corpus/ancora"); e != nil {
+            fmt.Println(e)
+        } else if e = m.Store("./models/ancora"); e != nil {
+            fmt.Println(e)
         } else {
-            for _, word := range s {
-                fmt.Printf("%s/%s ", word.Raw, word.Tag)
-            }
+            fmt.Println("Trained!")
         }
     }
 ```

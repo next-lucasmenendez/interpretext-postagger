@@ -1,82 +1,60 @@
-// Classify all words into a sentence with each tag
+// HMM applied to Part-Of-Speech Tagging in Go.
 package gopostagger
 
 import (
 	"sort"
-	"regexp"
 	"strings"
 )
 
-// Data struct that contains data from each word: order into their sentence, raw content and proposed tag.
-type Token struct {
-	Order int
-	Raw, Tag string
+// token is a struct to contain token information including sentence order, raw
+// content and proposed tag
+type token struct {
+	order    int
+	raw string
+	tag string
 }
 
-// Data struct that contains orderable list of words (tokens)
-type Sentence []*Token
+// sentences contains list of tokens pointers
+type sentence []*token
 
-func (s Sentence) Len() int {
-	return len(s)
+func (s sentence) Len() int           { return len(s) }
+func (s sentence) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s sentence) Less(i, j int) bool { return s[i].order < s[j].order }
+
+// Tagger struct is associated to a model
+type Tagger struct {
+	model *Model
 }
 
-func (s Sentence) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
+// NewTagger function returns a tagger instance associated with model provided.
+func NewTagger(m *Model) *Tagger {
+	return &Tagger{m}
 }
 
-func (s Sentence) Less(i, j int) bool {
-	return s[i].Order < s[j].Order
-}
-
-// Load model pased by arguments and call tagger to get each word tag based on that model.
-// If model doesnt exists, get corpus associated and train the model.
-func (sentence Sentence) Tag(modelName string) error {
-	var err error
-	var m *Model
-	if m, err = Load(modelName); err != nil {
-		if err = m.Train(modelName); err != nil {
-			return err
-		}
+// Tag function proposes a tag for each tokens provided in based of tagger model.
+func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
+	var s sentence
+	for i, w := range tokens {
+		s = append(s, &token{ order: i, raw: w })
 	}
 
-	sort.Sort(sentence)
-	var currentTag string = Start
-	for _, token := range sentence {
-		var maxScore float64
-		var lowerToken string = strings.ToLower(token.Raw)
-		var probs map[string]float64 = m.GetProbs(lowerToken, currentTag)
-		for tag, score := range probs {
-			if score > maxScore {
-				currentTag = tag
-				maxScore = score
+	sort.Sort(s)
+	var c string = StartTag
+	for _, tk := range s {
+		var max float64
+		var lt string = strings.ToLower(tk.raw)
+		var ps map[string]float64 = t.model.probs(lt, c)
+		if len(ps) > 0 {
+			for tg, sc := range ps {
+				if sc > max {
+					c = tg
+					max = sc
+				}
 			}
+			tk.tag = c
 		}
-		token.Tag = currentTag
+
+		tagged = append(tagged, []string{tk.raw, tk.tag})
 	}
-	return nil
-}
-
-func Tokenize(raw_sentence string) Sentence {
-	var tokenRgx *regexp.Regexp = regexp.MustCompile(`\s`)
-	var puntStart *regexp.Regexp = regexp.MustCompile(`(¡|¿|\(\[\{)(.+)`)
-	var puntEnd *regexp.Regexp = regexp.MustCompile(`(.+)(\.|:|;|,|!|\?|\)|]|})`)
-
-	var offset int
-	var sentence Sentence
-	var words []string = tokenRgx.Split(raw_sentence, -1)
-	for i, raw := range words {
-		if rawStart := puntStart.FindStringSubmatch(raw); len(rawStart) > 2 {
-			sentence = append(sentence, &Token{Order: i + offset, Raw: rawStart[1]})
-			offset++
-			sentence = append(sentence, &Token{Order: i + offset, Raw: rawStart[2]})
-		} else if rawEnd := puntEnd.FindStringSubmatch(raw); len(rawEnd) > 2 {
-			sentence = append(sentence, &Token{Order: i + offset, Raw: rawEnd[1]})
-			offset++
-			sentence = append(sentence, &Token{Order: i + offset, Raw: rawEnd[2]})
-		} else {
-			sentence = append(sentence, &Token{Order: i + offset, Raw: raw})
-		}
-	}
-
-	return sentence
+	return tagged
 }

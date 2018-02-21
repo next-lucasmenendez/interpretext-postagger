@@ -1,4 +1,3 @@
-// Contains all structs and functions to load, save and train a model based on a corpus.
 package gopostagger
 
 import (
@@ -6,291 +5,305 @@ import (
 	"fmt"
 	"sort"
 	"bufio"
-	"errors"
 	"regexp"
 	"strconv"
-	"io/ioutil"
 	"path/filepath"
 )
 
 const (
-	ModelsPath string = "./models"
-	Start string = "<s>"
-	End string = "</s>"
+	StartTag string = "<s>" // StartTag const contains first tag node
+	EndTag string = "</s>" // StartTag const contains last tag node
 )
 
-// Auxiliar struct that contains tag or word relations with their weights.
-type Link struct {
-	current, previous string // word, tag (emission) - tag, tag (transition)
-	occurrences, weight float64 
+// link struct stores information of two tokens and the relation between both.
+type link struct {
+	current string
+	previous string // word, tag (emission) - tag, tag (transition)
+	occurrences float64
+	weight float64
 }
 
 // List of links to sort it.
-type Links []*Link
+type links []*link
 
-func (l Links) Len() int {
-	return len(l)
-}
+func (l links) Len() int           { return len(l) }
+func (l links) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+func (l links) Less(i, j int) bool { return l[i].weight < l[j].weight }
 
-func (l Links) Swap(i, j int) {
-	l[i], l[j] = l[j], l[i]
-}
-
-func (l Links) Less(i, j int) bool {
-	return l[i].weight < l[j].weight
-}
-
-// Auxiliar function to return link between two nodes of transition if already exists or create one and return it.
-func getLink(links Links, current, previous string) (*Link, bool)  {
-	if len(links) > 0 {
-		for _, link := range links {
-			if link.current == current && link.previous == previous {
-				return link, true
+// getLink function search is called by links struct and search in whole links
+// inside them to find a relation between current and previous provided.
+func (ls links) getLink(current, previous string) (*link, bool)  {
+	if len(ls) > 0 {
+		for _, l := range ls {
+			if l.current == current && l.previous == previous {
+				return l, true
 			}
 		}
 	}
-	return &Link{current: current, previous: previous, occurrences: 1}, false
+
+	return &link{current: current, previous: previous, occurrences: 1}, false
 }
 
-// Contains corpus and model name, available tags and transitions and emissions tables.
+// Model define a trained model based on tagged corpus. Contains emissions and
+// transitions tables and tag list available.
 type Model struct {
-	Name string
-	Tags []string
-	Transitions, Emissions Links
+	tags        []string
+	transitions links
+	emissions   links
 }
 
-// Check if model exists locally and return it.
-func Load(name string) (*Model, error) {
-	var model *Model = &Model{Name: name}
-	if exists, err := model.exists(); err != nil {
-		return model, err
-	} else if !exists {
-		return model, errors.New("Model not found.")
+// LoadModel function returns model instance opening transitions and emissions
+// tables based on path provided.
+func LoadModel(p string) (m *Model, err error) {
+	if l, err := filepath.Abs(p); err != nil {
+		return m, err
+	} else if _, err = os.Open(l); err != nil {
+		return m, err
 	}
 
-	model.loadLocal(name)
-	return model, nil
+	var (
+		tp string = fmt.Sprintf("%s/transitions", p)
+		ep string = fmt.Sprintf("%s/emissions", p)
+	)
+
+	m = &Model{}
+	if err = m.loadTransitions(tp); err != nil {
+		return m, err
+	}
+
+	if err = m.loadEmissions(ep); err != nil {
+		return m, err
+	}
+	return m, err
 }
 
-// Check if model is already trained and saved locally to return it.
-// If model doesn't exists yet, it'll be trained based on corpus provided and saved locally.
-func (model *Model) Train(corpusName string) error {
-	if exists, err := model.exists(); err != nil {
-		return err
-	} else if exists {
-		model.loadLocal(corpusName)
-		return nil
-	}
+// loadTransitions function opens transition table file associated to current
+// model. Then parses and generates links each line.
+func (m *Model) loadTransitions(p string) (err error) {
+	var re *regexp.Regexp = regexp.MustCompile(`\t`)
 
-	if c, err := GetCorpus(corpusName); err != nil {
+	var tfd *os.File
+	if tfd, err = os.Open(p); err != nil {
 		return err
-	} else {
-		model.trainCorpus(c)
-		if err := model.saveLocal(); err != nil {
-			return err
+	}
+	defer tfd.Close()
+
+	var sc *bufio.Scanner = bufio.NewScanner(tfd)
+	for sc.Scan() {
+		var ln string = sc.Text()
+		var data []string = re.Split(ln, -1)
+		if len(data) == 3 {
+			var weight float64
+			if weight, err = strconv.ParseFloat(data[2], 64); err != nil {
+				return err
+			}
+
+			m.transitions = append(m.transitions, &link{previous: data[0], current: data[1], weight: weight})
 		}
 	}
 	return nil
 }
 
-// Calculate word possibilities based on previous tag, with transmission and emission costs using model provided.
-func (model *Model) GetProbs(currentWord, prevTag string) map[string]float64 {
-	var transitions Links
-	for _, transition := range model.Transitions {
-		if transition.previous == prevTag {
-			transitions = append(transitions, transition)
-		}
+// loadTransitions function opens emission table file associated to current
+// model. Then parses and generates links each line.
+func (m *Model) loadEmissions(p string) (err error) {
+	var re *regexp.Regexp = regexp.MustCompile(`\t`)
+	var efd *os.File
+	if efd, err = os.Open(p); err != nil {
+		return err
 	}
+	defer efd.Close()
 
-	var emissions Links
-	for _, emission := range model.Emissions {
-		if emission.current == currentWord {
-			emissions = append(emissions, emission)
-		}
-	}
-
-	var probs map[string]float64 = make(map[string]float64, len(transitions))
-	for _, emission := range emissions {
-		var score float64 = emission.weight
-		for _, transition := range transitions {
-			if emission.current == transition.previous {
-				score += transition.weight 
+	var sc *bufio.Scanner = bufio.NewScanner(efd)
+	for sc.Scan() {
+		var line string = sc.Text()
+		var data []string = re.Split(line, -1)
+		if len(data) == 3 {
+			if w, err := strconv.ParseFloat(data[2], 64); err != nil {
+				return err
+			} else {
+				m.emissions = append(m.emissions, &link{data[1], data[0], 0, w})
 			}
 		}
-		probs[emission.previous] = score
 	}
-
-	return probs
+	return nil
 }
 
-// Check if model already exists
-func (model *Model) exists() (bool, error) {
-	var err error
-	var location string
-
-	if location, err = filepath.Abs(ModelsPath); err != nil {
-		return false, err
-	}
-
-	var avalible []os.FileInfo
-	if avalible, err = ioutil.ReadDir(location); err != nil {
-		return false, err
-	}
-
-	for _, item := range avalible {
-		if item.IsDir() && item.Name() == model.Name {
-			return true, nil
+// Calculate word possibilities based on previous tag, with transmission and
+// emission costs using Model provided.
+func (m *Model) probs(currentWord, prevTag string) (ps map[string]float64) {
+	var ts links
+	for _, t := range m.transitions {
+		if t.previous == prevTag {
+			ts = append(ts, t)
 		}
 	}
-	return false, nil
+
+	var es links
+	for _, e := range m.emissions {
+		if e.current == currentWord {
+			es = append(es, e)
+		}
+	}
+
+	ps = make(map[string]float64, len(ts))
+	for _, e := range es {
+		var s float64 = e.weight
+		for _, t := range ts {
+			if e.current == t.previous {
+				s += t.weight
+			}
+		}
+		ps[e.previous] = s
+	}
+	return ps
 }
 
-// Train model with corpus provided and generates transitions and emissions tables.
-func (model *Model) trainCorpus(c Corpus) {
-	fmt.Print("Training... ")
+// train Model with corpus provided and generates transitions and emissions
+// tables. Receives corpus path and return Model instance.
+func Train(p string) (m *Model, err error) {
+	if l, err := filepath.Abs(p); err != nil {
+		return m, err
+	} else if fd, err := os.Open(l); err != nil {
+		return m, err
+	} else {
+		defer fd.Close()
 
-	var records []Record = c.Records
-	var transitions, emissions Links
+		m = &Model{tags: []string{}}
+		var (
+			data []sentence
+			rs   *regexp.Regexp = regexp.MustCompile(`\s|\t`)
+			rtg  *regexp.Regexp = regexp.MustCompile(`(.+)/(.+)`)
+		)
 
-	var contextLength int = len(c.Tags) + 2
-	var context map[string]float64 = make(map[string]float64, contextLength)
+		var sc *bufio.Scanner = bufio.NewScanner(fd)
+		for sc.Scan() {
+			var ln string = sc.Text()
+			var cdts []string = rs.Split(ln, -1)
 
-	//Calculate weights over all records
-	for _, record := range records {
-		var previous string = Start
-		context[Start]++
+			var s sentence
+			for i, cdt := range cdts {
+				var (
+					g       = rtg.FindStringSubmatch(cdt)
+					r  string = g[1]
+					tg string = g[2]
+				)
 
-		sort.Sort(record)
-		for _, item := range record {
-			if transition, exists := getLink(transitions, item.Tag, previous); exists {
-				transition.occurrences++
-			} else {
-				transitions = append(transitions, transition)
+				var in bool = false
+				for _, t := range m.tags {
+					in = in || t == tg
+				}
+				if !in {
+					m.tags = append(m.tags, tg)
+				}
+
+				s = append(s, &token{i, r, tg})
 			}
 
-			if emission, exists := getLink(emissions, item.Raw, item.Tag); exists {
-				emission.occurrences++
-			} else {
-				emissions = append(emissions, emission)
+			if len(s) > 0 {
+				data = append(data, s)
 			}
-
-			context[item.Tag]++
-			previous = item.Tag
 		}
 
-		if transition, exists := getLink(transitions, previous, End); exists {
-			transition.occurrences++
+		if err := sc.Err(); err != nil {
+			return m, err
+		}
+		m.score(data)
+	}
+	return m, err
+}
+
+// score function calculates transitions and emissions for untrained corpus
+// provided.
+func (m *Model) score(data []sentence) {
+	var (
+		ts links
+		es links
+		ctx map[string]float64 = make(map[string]float64, len(m.tags) + 2)
+	)
+
+	for _, s := range data {
+		var prev string = StartTag
+		ctx[StartTag]++
+
+		sort.Sort(s)
+		for _, t := range s {
+			if t, ok := ts.getLink(t.tag, prev); ok {
+				t.occurrences++
+			} else {
+				ts = append(ts, t)
+			}
+
+			if e, ok := es.getLink(t.raw, t.tag); ok {
+				e.occurrences++
+			} else {
+				es = append(es, e)
+			}
+
+			ctx[t.tag]++
+			prev = t.tag
+		}
+
+		if t, exists := ts.getLink(prev, EndTag); exists {
+			t.occurrences++
 		} else {
-			transitions = append(transitions, transition)
+			ts = append(ts, t)
 		}
-		context[End]++
+		ctx[EndTag]++
 	}
 
 	// Normalize weights
-	for _, transition := range transitions {
-		transition.weight = transition.occurrences / context[transition.previous] 
+	for _, t := range ts {
+		t.weight = t.occurrences / ctx[t.previous]
 	}
-	model.Transitions = transitions
+	m.transitions = ts
 
-	for _, emission := range emissions {
-		emission.weight = emission.occurrences / context[emission.previous]
+	for _, e := range es {
+		e.weight = e.occurrences / ctx[e.previous]
 	}
-	model.Emissions = emissions
-	fmt.Println("Done!")
+	m.emissions = es
 }
 
-// Load model from local file system and parse transitions and emissions tables into data structures.
-// All item was a Link, with current and previous state and their cost.
-func (model *Model) loadLocal(corpusName string) error {
-	var err error
-	var transitionsPath string = fmt.Sprintf("%s/%s/transitions", ModelsPath, corpusName)
-	var emissionsPath string = fmt.Sprintf("%s/%s/emissions", ModelsPath, corpusName)
-
-	var tab_rgx *regexp.Regexp = regexp.MustCompile(`\t`)
-
-	var transitions_fd *os.File
-	if transitions_fd, err = os.Open(transitionsPath); err != nil {
+// Save trained Model locally. Creates tabbed separated file with transitions
+// and emissions and each weight.
+func (m *Model) Store(o string) (err error) {
+	if l, err := filepath.Abs(o); err != nil {
 		return err
-	}
-	defer transitions_fd.Close()
-
-	var transitions Links
-	var transitionScanner *bufio.Scanner = bufio.NewScanner(transitions_fd)
-	for transitionScanner.Scan() {
-		var line string = transitionScanner.Text()
-		var data []string = tab_rgx.Split(line, -1)
-		if len(data) == 3 {
-			var weight float64
-			if weight, err = strconv.ParseFloat(data[2], 64); err != nil {
-				return err
-			}
-
-			var t *Link = &Link{previous: data[0], current: data[1], weight: weight}
-			transitions = append(transitions, t)
-		}
-	}
-
-	var emissions_fd *os.File
-	if emissions_fd, err = os.Open(emissionsPath); err != nil {
-		return err
-	}
-	defer emissions_fd.Close()
-
-	var emissions Links
-	var emissionScanner *bufio.Scanner = bufio.NewScanner(emissions_fd)
-	for emissionScanner.Scan() {
-		var line string = emissionScanner.Text()
-		var data []string = tab_rgx.Split(line, -1)
-		if len(data) == 3 {
-			var weight float64
-			if weight, err = strconv.ParseFloat(data[2], 64); err != nil {
-				return err
-			}
-
-			var e *Link = &Link{current: data[1], previous: data[0], weight: weight}
-			emissions = append(emissions, e)
-		}
-	}
-
-	model.Transitions = transitions
-	model.Emissions = emissions
-	return nil
-}
-
-// Save trained model locally. Creates tabbed separated file with transitions and emissions and each weight.
-func (model *Model) saveLocal() error {
-	var err error
-	var modelLocation string = fmt.Sprintf("%s/%s", ModelsPath, model.Name)
-	if err = os.Mkdir(modelLocation, os.ModePerm); err != nil {
-		return err
-	}
-
-	var transitionsPath string = fmt.Sprintf("%s/transitions", modelLocation)
-	if fdTransitions, err := os.Create(transitionsPath); err == nil {
-		defer fdTransitions.Close()
-
-		for _, t := range model.Transitions {
-			var line string = fmt.Sprintf("%s\t%s\t%g\n", t.previous, t.current, t.weight)
-			if _, err = fdTransitions.WriteString(line); err != nil {
-				return err
-			}
-		}
 	} else {
-		return err
-	}
+		if err = os.Mkdir(l, os.ModePerm); err != nil {
+			return err
+		}
 
-	var emissionsPath string = fmt.Sprintf("%s/emissions", modelLocation)
-	if fdEmissions, err := os.Create(emissionsPath); err == nil {
-		defer fdEmissions.Close()
+		var (
+			tp string = fmt.Sprintf("%s/transitions", l)
+			ep string = fmt.Sprintf("%s/emissions", l)
+		)
 
-		for _, e := range model.Emissions {
-			var line string = fmt.Sprintf("%s\t%s\t%g\n", e.previous, e.current, e.weight)
-			if _, err = fdEmissions.WriteString(line); err != nil {
-				return err
+		if fdt, err := os.Create(tp); err != nil {
+			return err
+		} else {
+			defer fdt.Close()
+
+			for _, t := range m.transitions {
+				var ln string = fmt.Sprintf("%s\t%s\t%g\n", t.previous, t.current, t.weight)
+				if _, err = fdt.WriteString(ln); err != nil {
+					return err
+				}
 			}
 		}
-	} else {
-		return err
+
+		if fde, err := os.Create(ep); err == nil {
+			defer fde.Close()
+
+			for _, e := range m.emissions {
+				var ln string = fmt.Sprintf("%s\t%s\t%g\n", e.previous, e.current, e.weight)
+				if _, err = fde.WriteString(ln); err != nil {
+					return err
+				}
+			}
+		} else {
+			return err
+		}
 	}
 	return nil
 }
