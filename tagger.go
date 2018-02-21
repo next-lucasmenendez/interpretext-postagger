@@ -43,8 +43,7 @@ func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
 	for _, tk := range s {
 		var max float64
 		var lt string = strings.ToLower(tk.raw)
-		var ps map[string]float64 = t.model.probs(lt, c)
-		if len(ps) > 0 {
+		if ps, sg := t.model.probs(lt, c);len(ps) > 0 {
 			for tg, sc := range ps {
 				if sc > max {
 					c = tg
@@ -52,6 +51,8 @@ func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
 				}
 			}
 			tk.tag = c
+		} else if sg != "" {
+			tk.tag = sg
 		}
 
 		tagged = append(tagged, []string{tk.raw, tk.tag})

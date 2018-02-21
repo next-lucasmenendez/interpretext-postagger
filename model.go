@@ -130,18 +130,18 @@ func (m *Model) loadEmissions(p string) (err error) {
 }
 
 // Calculate word possibilities based on previous tag, with transmission and
-// emission costs using Model provided.
-func (m *Model) probs(currentWord, prevTag string) (ps map[string]float64) {
+// emission costs using Model provided.  Propose tag  with '?' after  if model doesn't have emission record for current word.
+func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	var ts links
 	for _, t := range m.transitions {
-		if t.previous == prevTag {
+		if t.previous == pt {
 			ts = append(ts, t)
 		}
 	}
 
 	var es links
 	for _, e := range m.emissions {
-		if e.current == currentWord {
+		if e.current == cw {
 			es = append(es, e)
 		}
 	}
@@ -156,7 +156,21 @@ func (m *Model) probs(currentWord, prevTag string) (ps map[string]float64) {
 		}
 		ps[e.previous] = s
 	}
-	return ps
+
+	if len(ps) == 0 {
+		var _t string = StartTag
+		var max float64
+		for _, t := range ts {
+			if t.weight > max {
+				_t =  t.current
+				max = t.weight
+			}
+		}
+
+		sg = fmt.Sprintf("%s?",_t)
+	}
+
+	return ps, sg
 }
 
 // train Model with corpus provided and generates transitions and emissions
