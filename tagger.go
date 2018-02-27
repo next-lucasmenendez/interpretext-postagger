@@ -9,9 +9,9 @@ import (
 // token is a struct to contain token information including sentence order, raw
 // content and proposed tag
 type token struct {
-	order    int
-	raw string
-	tag string
+	order int
+	raw   string
+	tag   string
 }
 
 // sentences contains list of tokens pointers
@@ -35,7 +35,7 @@ func NewTagger(m *Model) *Tagger {
 func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
 	var s sentence
 	for i, w := range tokens {
-		s = append(s, &token{ order: i, raw: w })
+		s = append(s, &token{order: i, raw: w})
 	}
 
 	sort.Sort(s)
@@ -43,7 +43,7 @@ func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
 	for _, tk := range s {
 		var max float64
 		var lt string = strings.ToLower(tk.raw)
-		if ps, sg := t.model.probs(lt, c);len(ps) > 0 {
+		if ps, sg := t.model.probs(lt, c); len(ps) > 0 {
 			for tg, sc := range ps {
 				if sc > max {
 					c = tg

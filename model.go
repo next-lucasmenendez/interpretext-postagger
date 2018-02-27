@@ -1,26 +1,26 @@
 package gopostagger
 
 import (
-	"os"
-	"fmt"
-	"sort"
 	"bufio"
-	"regexp"
-	"strconv"
+	"fmt"
+	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
 )
 
 const (
-	StartTag string = "<s>" // StartTag const contains first tag node
-	EndTag string = "</s>" // StartTag const contains last tag node
+	StartTag string = "<s>"  // StartTag const contains first tag node
+	EndTag   string = "</s>" // StartTag const contains last tag node
 )
 
 // link struct stores information of two tokens and the relation between both.
 type link struct {
-	current string
-	previous string // word, tag (emission) - tag, tag (transition)
+	current     string
+	previous    string // word, tag (emission) - tag, tag (transition)
 	occurrences float64
-	weight float64
+	weight      float64
 }
 
 // List of links to sort it.
@@ -32,7 +32,7 @@ func (l links) Less(i, j int) bool { return l[i].weight < l[j].weight }
 
 // getLink function search is called by links struct and search in whole links
 // inside them to find a relation between current and previous provided.
-func (ls links) getLink(current, previous string) (*link, bool)  {
+func (ls links) getLink(current, previous string) (*link, bool) {
 	if len(ls) > 0 {
 		for _, l := range ls {
 			if l.current == current && l.previous == previous {
@@ -93,12 +93,12 @@ func (m *Model) loadTransitions(p string) (err error) {
 		var ln string = sc.Text()
 		var data []string = re.Split(ln, -1)
 		if len(data) == 3 {
-			var weight float64
-			if weight, err = strconv.ParseFloat(data[2], 64); err != nil {
+			var w float64
+			if w, err = strconv.ParseFloat(data[2], 64); err != nil {
 				return err
 			}
 
-			m.transitions = append(m.transitions, &link{previous: data[0], current: data[1], weight: weight})
+			m.transitions = append(m.transitions, &link{previous: data[0], current: data[1], weight: w})
 		}
 	}
 	return nil
@@ -130,7 +130,8 @@ func (m *Model) loadEmissions(p string) (err error) {
 }
 
 // Calculate word possibilities based on previous tag, with transmission and
-// emission costs using Model provided.  Propose tag  with '?' after  if model doesn't have emission record for current word.
+// emission costs using Model provided.  Propose tag  with '?' after  if model
+// doesn't have emission record for current word.
 func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	var ts links
 	for _, t := range m.transitions {
@@ -162,12 +163,12 @@ func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 		var max float64
 		for _, t := range ts {
 			if t.weight > max {
-				_t =  t.current
+				_t = t.current
 				max = t.weight
 			}
 		}
 
-		sg = fmt.Sprintf("%s?",_t)
+		sg = fmt.Sprintf("%s?", _t)
 	}
 
 	return ps, sg
@@ -198,7 +199,7 @@ func Train(p string) (m *Model, err error) {
 			var s sentence
 			for i, cdt := range cdts {
 				var (
-					g       = rtg.FindStringSubmatch(cdt)
+					g         = rtg.FindStringSubmatch(cdt)
 					r  string = g[1]
 					tg string = g[2]
 				)
@@ -231,9 +232,9 @@ func Train(p string) (m *Model, err error) {
 // provided.
 func (m *Model) score(data []sentence) {
 	var (
-		ts links
-		es links
-		ctx map[string]float64 = make(map[string]float64, len(m.tags) + 2)
+		ts  links
+		es  links
+		ctx map[string]float64 = make(map[string]float64, len(m.tags)+2)
 	)
 
 	for _, s := range data {
