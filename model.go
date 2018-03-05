@@ -130,8 +130,8 @@ func (m *Model) loadEmissions(p string) (err error) {
 }
 
 // Calculate word possibilities based on previous tag, with transmission and
-// emission costs using Model provided.  Propose tag  with '?' after  if model
-// doesn't have emission record for current word.
+// emission costs using Model provided. If model doesn't have emission record
+// for current word, return proposed tag with '?' after.
 func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	var ts links
 	for _, t := range m.transitions {

@@ -1,3 +1,7 @@
+[![GoDoc](https://godoc.org/github.com/lucasmenendez/gopostagger?status.svg)](https://godoc.org/github.com/lucasmenendez/gopostagger)
+[![Build Status](https://travis-ci.org/lucasmenendez/gopostagger.svg?branch=master)](https://travis-ci.org/lucasmenendez/gopostagger)
+[![Report](https://goreportcard.com/badge/github.com/lucasmenendez/gopostagger)](https://goreportcard.com/report/github.com/lucasmenendez/gopostagger)
+
 # Gopostager
 HMM applied to Part-Of-Speech Tagging in Go. Implementation of [*Part-of-Speech Tagging with Hidden Markov Models - Graham Neubig*](http://www.phontron.com/slides/nlp-programming-en-04-hmm.pdf)
     
