@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	StartTag string = "<s>"  // StartTag const contains first tag node
-	EndTag   string = "</s>" // StartTag const contains last tag node
+	startTag string = "<s>"
+	endTag   string = "</s>"
 )
 
 // link struct stores information of two tokens and the relation between both.
@@ -160,7 +160,7 @@ func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	}
 
 	if len(ps) == 0 {
-		var _t string = StartTag
+		var _t string = startTag
 		var max float64
 		for _, t := range ts {
 			if t.weight > max {
@@ -239,8 +239,8 @@ func (m *Model) score(data []sentence) {
 	)
 
 	for _, s := range data {
-		var prev string = StartTag
-		ctx[StartTag]++
+		var prev string = startTag
+		ctx[startTag]++
 
 		sort.Sort(s)
 		for _, t := range s {
@@ -260,12 +260,12 @@ func (m *Model) score(data []sentence) {
 			prev = t.tag
 		}
 
-		if t, exists := ts.getLink(prev, EndTag); exists {
+		if t, exists := ts.getLink(prev, endTag); exists {
 			t.occurrences++
 		} else {
 			ts = append(ts, t)
 		}
-		ctx[EndTag]++
+		ctx[endTag]++
 	}
 
 	// Normalize weights

@@ -39,7 +39,7 @@ func (t *Tagger) Tag(tokens []string) (tagged [][]string) {
 	}
 
 	sort.Sort(s)
-	var c string = StartTag
+	var c string = startTag
 	for _, tk := range s {
 		var max float64
 		var lt string = strings.ToLower(tk.raw)

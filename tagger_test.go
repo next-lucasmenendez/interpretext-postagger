@@ -5,14 +5,14 @@ import "testing"
 func TestTaggerAndTag(t *testing.T) {
 	if ok := downloadCorpus(t); !ok {
 		t.Error("Expected true, got false")
-	} else if m, e := Train(example_corpus); e != nil {
+	} else if m, e := Train(exampleCorpus); e != nil {
 		t.Fatalf("Expected nil, got %s", e.Error())
-	} else if e := m.Store(example_model); e != nil {
+	} else if e := m.Store(exampleModel); e != nil {
 		t.Errorf("Expected nil, got %s", e.Error())
 	} else {
 		defer deleteCorpus(t)
 
-		if m, e := LoadModel(example_model); e != nil {
+		if m, e := LoadModel(exampleModel); e != nil {
 			t.Errorf("Expected nil, got %s", e.Error())
 		} else {
 			var (
