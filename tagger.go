@@ -1,4 +1,4 @@
-// HMM applied to Part-Of-Speech Tagging in Go.
+// Package gopostagger contains HMM applied to Part-Of-Speech Tagging in Go.
 package gopostagger
 
 import (

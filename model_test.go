@@ -8,25 +8,22 @@ import (
 	"testing"
 )
 
-const example_corpus string = "./example_corpus"
-const example_model string = "./example_model"
+const exampleCorpus string = "./example_corpus"
+const exampleModel string = "./example_model"
 
 func downloadCorpus(t *testing.T) bool {
-	if fd, e := os.Create(example_corpus); e != nil {
+	if fd, e := os.Create(exampleCorpus); e != nil {
 		t.Errorf("Expected nil, got Error:'%s'", e)
-		return false
 	} else {
 		defer fd.Close()
 
 		if r, e := http.Get("https://raw.githubusercontent.com/lucasmenendez/gopostagger/master/ancora"); e != nil {
 			t.Errorf("Expected nil, got Error:'%s'", e)
-			return false
 		} else {
 			defer r.Body.Close()
 
 			if _, e := io.Copy(fd, r.Body); e != nil {
 				t.Errorf("Expected nil, got Error:'%s'", e)
-				return false
 			} else {
 				return true
 			}
@@ -37,9 +34,9 @@ func downloadCorpus(t *testing.T) bool {
 }
 
 func deleteCorpus(t *testing.T) {
-	if e := os.Remove(example_corpus); e != nil {
+	if e := os.Remove(exampleCorpus); e != nil {
 		t.Errorf("Expected nil, got Error:'%s'", e)
-	} else if e = os.RemoveAll(example_model); e != nil {
+	} else if e = os.RemoveAll(exampleModel); e != nil {
 		t.Errorf("Expected nil, got Error:'%s'", e)
 	}
 }
@@ -71,16 +68,16 @@ func TestTrainAndStore(t *testing.T) {
 
 	if ok := downloadCorpus(t); !ok {
 		t.Error("Expected true, got false")
-	} else if m, e := Train(example_corpus); e != nil {
+	} else if m, e := Train(exampleCorpus); e != nil {
 		t.Fatalf("Expected nil, got %s", e.Error())
-	} else if e := m.Store(example_model); e != nil {
+	} else if e := m.Store(exampleModel); e != nil {
 		t.Errorf("Expected nil, got %s", e.Error())
 	}
 }
 
 func TestLoadTransitions(t *testing.T) {
 	var (
-		tp string = fmt.Sprintf("%s/transitions", example_model)
+		tp string = fmt.Sprintf("%s/transitions", exampleModel)
 		m  *Model = &Model{}
 	)
 
@@ -120,7 +117,7 @@ func TestLoadTransitions(t *testing.T) {
 
 func TestLoadEmissions(t *testing.T) {
 	var (
-		ep string = fmt.Sprintf("%s/emissions", example_model)
+		ep string = fmt.Sprintf("%s/emissions", exampleModel)
 		m  *Model = &Model{}
 	)
 
@@ -161,7 +158,7 @@ func TestLoadEmissions(t *testing.T) {
 func TestLoadModel(t *testing.T) {
 	if _, err := LoadModel("dslknfdslkngsd"); err == nil {
 		t.Error("Expected error, got nil")
-	} else if m, err := LoadModel("./example_model"); err != nil {
+	} else if m, err := LoadModel(exampleModel); err != nil {
 		t.Errorf("Expected nil, got %s", err.Error())
 	} else {
 		var expt links = links{
@@ -219,7 +216,7 @@ func TestLoadModel(t *testing.T) {
 func TestProbs(t *testing.T) {
 	defer deleteCorpus(t)
 
-	if m, err := LoadModel("./example_model"); err != nil {
+	if m, err := LoadModel(exampleModel); err != nil {
 		t.Errorf("Expected nil, got %s", err.Error())
 	} else {
 		if ps, sg := m.probs("fdsfsf", ""); len(ps) > 0 {
@@ -229,7 +226,7 @@ func TestProbs(t *testing.T) {
 		} else if ps, sg := m.probs("El", "<s>"); len(ps) == 0 {
 			t.Error("Expecetd >0, got 0")
 		} else if ps["DET"] != 0.04290569243840272 {
-			t.Errorf("Expected \"DET\":0.04290569243840272, got \"%q\"", ps)
+			t.Errorf("Expected \"DET\":0.04290569243840272, got \"%+v\"", ps)
 		} else if sg != "" {
 			t.Errorf("Expected \"\", got \"%s\"", sg)
 		}
