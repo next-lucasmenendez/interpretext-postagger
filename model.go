@@ -32,11 +32,11 @@ func (l links) Less(i, j int) bool { return l[i].weight < l[j].weight }
 
 // getLink function search is called by links struct and search in whole links
 // inside them to find a relation between current and previous provided.
-func (ls links) getLink(current, previous string) (*link, bool) {
-	if len(ls) > 0 {
-		for _, l := range ls {
-			if l.current == current && l.previous == previous {
-				return l, true
+func (l links) getLink(current, previous string) (*link, bool) {
+	if len(l) > 0 {
+		for _, sl := range l {
+			if sl.current == current && sl.previous == previous {
+				return sl, true
 			}
 		}
 	}
@@ -106,11 +106,11 @@ func (m *Model) loadTransitions(p string) (err error) {
 
 // loadTransitions function opens emission table file associated to current
 // model. Then parses and generates links each line.
-func (m *Model) loadEmissions(p string) (err error) {
+func (m *Model) loadEmissions(p string) (e error) {
 	var re *regexp.Regexp = regexp.MustCompile(`\t`)
 	var efd *os.File
-	if efd, err = os.Open(p); err != nil {
-		return err
+	if efd, e = os.Open(p); e != nil {
+		return e
 	}
 	defer efd.Close()
 
@@ -119,19 +119,20 @@ func (m *Model) loadEmissions(p string) (err error) {
 		var line string = sc.Text()
 		var data []string = re.Split(line, -1)
 		if len(data) == 3 {
-			if w, err := strconv.ParseFloat(data[2], 64); err != nil {
-				return err
-			} else {
-				m.emissions = append(m.emissions, &link{data[1], data[0], 0, w})
+			var w float64
+			if w, e = strconv.ParseFloat(data[2], 64); e != nil {
+				return e
 			}
+
+			m.emissions = append(m.emissions, &link{data[1], data[0], 0, w})
 		}
 	}
 	return nil
 }
 
-// Calculate word possibilities based on previous tag, with transmission and
-// emission costs using Model provided. If model doesn't have emission record
-// for current word, return proposed tag with '?' after.
+// probs function calculate word possibilities based on previous tag, with
+// transmission and emission costs using Model provided. If model doesn't have
+// emission record for current word, return proposed tag with '?' after.
 func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	var ts links
 	for _, t := range m.transitions {
@@ -174,8 +175,8 @@ func (m *Model) probs(cw, pt string) (ps map[string]float64, sg string) {
 	return ps, sg
 }
 
-// train Model with corpus provided and generates transitions and emissions
-// tables. Receives corpus path and return Model instance.
+// Train function trains Model with corpus provided and generates transitions
+// and emissions tables. Receives corpus path and return Model instance.
 func Train(p string) (m *Model, err error) {
 	if l, err := filepath.Abs(p); err != nil {
 		return m, err
@@ -279,24 +280,22 @@ func (m *Model) score(data []sentence) {
 	m.emissions = es
 }
 
-// Save trained Model locally. Creates tabbed separated file with transitions
-// and emissions and each weight.
+// Store function saves trained Model locally. Creates tabbed separated file
+// with transitions and emissions and each weight.
 func (m *Model) Store(o string) (err error) {
-	if l, err := filepath.Abs(o); err != nil {
-		return err
-	} else {
+	var l string
+	if l, err = filepath.Abs(o); err == nil {
 		if err = os.Mkdir(l, os.ModePerm); err != nil {
 			return err
 		}
 
 		var (
-			tp string = fmt.Sprintf("%s/transitions", l)
-			ep string = fmt.Sprintf("%s/emissions", l)
+			tp       string = fmt.Sprintf("%s/transitions", l)
+			ep       string = fmt.Sprintf("%s/emissions", l)
+			fdt, fde *os.File
 		)
 
-		if fdt, err := os.Create(tp); err != nil {
-			return err
-		} else {
+		if fdt, err = os.Create(tp); err == nil {
 			defer fdt.Close()
 
 			for _, t := range m.transitions {
@@ -307,7 +306,7 @@ func (m *Model) Store(o string) (err error) {
 			}
 		}
 
-		if fde, err := os.Create(ep); err == nil {
+		if fde, err = os.Create(ep); err == nil {
 			defer fde.Close()
 
 			for _, e := range m.emissions {
@@ -316,9 +315,7 @@ func (m *Model) Store(o string) (err error) {
 					return err
 				}
 			}
-		} else {
-			return err
 		}
 	}
-	return nil
+	return err
 }

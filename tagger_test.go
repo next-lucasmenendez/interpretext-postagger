@@ -16,17 +16,17 @@ func TestTaggerAndTag(t *testing.T) {
 			t.Errorf("Expected nil, got %s", e.Error())
 		} else {
 			var (
-				tagger *Tagger = NewTagger(m)
-				sentence []string = []string{ "El", "mundo", "está", "girando", "sobre", "sí", "mismo", "."}
+				tagger   *Tagger    = NewTagger(m)
+				sentence []string   = []string{"El", "mundo", "está", "girando", "sobre", "sí", "mismo", "."}
 				expected [][]string = [][]string{
-					{ "El", "DET" },
-					{ "mundo", "NOUN" },
-					{ "está", "AUX" },
-					{ "girando", "VERB?" },
-					{ "sobre", "ADP" },
-					{ "sí", "ADV" },
-					{ "mismo", "ADJ" },
-					{ ".", "PUNCT" },
+					{"El", "DET"},
+					{"mundo", "NOUN"},
+					{"está", "AUX"},
+					{"girando", "VERB?"},
+					{"sobre", "ADP"},
+					{"sí", "ADV"},
+					{"mismo", "ADJ"},
+					{".", "PUNCT"},
 				}
 			)
 

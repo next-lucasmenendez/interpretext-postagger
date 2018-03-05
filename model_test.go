@@ -1,11 +1,11 @@
 package gopostagger
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"testing"
-	"fmt"
-	"io"
 )
 
 const example_corpus string = "./example_corpus"
@@ -81,7 +81,7 @@ func TestTrainAndStore(t *testing.T) {
 func TestLoadTransitions(t *testing.T) {
 	var (
 		tp string = fmt.Sprintf("%s/transitions", example_model)
-	 	m *Model = &Model{}
+		m  *Model = &Model{}
 	)
 
 	if err := m.loadTransitions("fail"); err == nil {
@@ -92,16 +92,16 @@ func TestLoadTransitions(t *testing.T) {
 		return
 	} else {
 		var expected links = links{
-			{ previous: "<s>", current: "DET", weight: 0.3690260133091349 },
-			{ previous: "DET", current: "NOUN", weight: 0.7237326536391957 },
-			{ previous: "NOUN", current: "PUNCT", weight: 0.21732791835884618 },
-			{ previous: "PUNCT", current: "ADP", weight: 0.11075697211155379 },
-			{ previous: "ADP", current: "ADJ", weight: 0.020774647887323944 },
-			{ previous: "ADJ", current: "NOUN", weight: 0.215375918598078 },
-			{ previous: "NOUN", current: "ADP", weight: 0.3826929084661043 },
-			{ previous: "ADP", current: "SCONJ", weight: 0.01784037558685446 },
-			{ previous: "SCONJ", current: "VERB", weight: 0.15371024734982333 },
-			{ previous: "VERB", current: "AUX", weight: 0.008492569002123142 },
+			{previous: "<s>", current: "DET", weight: 0.3690260133091349},
+			{previous: "DET", current: "NOUN", weight: 0.7237326536391957},
+			{previous: "NOUN", current: "PUNCT", weight: 0.21732791835884618},
+			{previous: "PUNCT", current: "ADP", weight: 0.11075697211155379},
+			{previous: "ADP", current: "ADJ", weight: 0.020774647887323944},
+			{previous: "ADJ", current: "NOUN", weight: 0.215375918598078},
+			{previous: "NOUN", current: "ADP", weight: 0.3826929084661043},
+			{previous: "ADP", current: "SCONJ", weight: 0.01784037558685446},
+			{previous: "SCONJ", current: "VERB", weight: 0.15371024734982333},
+			{previous: "VERB", current: "AUX", weight: 0.008492569002123142},
 		}
 
 		for _, tm := range m.transitions[:10] {
@@ -132,16 +132,16 @@ func TestLoadEmissions(t *testing.T) {
 		return
 	} else {
 		var expected links = links{
-			{ previous: "DET", current: "El", weight: 0.04290569243840272, },
-			{ previous: "NOUN", current: "gobernante", weight: 0.0002082682495053629, },
-			{ previous: "PUNCT", current: ",", weight: 0.45322709163346614, },
-			{ previous: "ADP", current: "con", weight: 0.05, },
-			{ previous: "ADJ", current: "ganada", weight: 0.0002826455624646693, },
-			{ previous: "NOUN", current: "fama", weight: 0.00010413412475268145, },
-			{ previous: "ADP", current: "desde", weight: 0.007863849765258215, },
-			{ previous: "SCONJ", current: "que", weight: 0.6351590106007067, },
-			{ previous: "VERB", current: "llegó", weight: 0.001887237556027365, },
-			{ previous: "AUX", current: "hace", weight: 0.013861386138613862, },
+			{previous: "DET", current: "El", weight: 0.04290569243840272},
+			{previous: "NOUN", current: "gobernante", weight: 0.0002082682495053629},
+			{previous: "PUNCT", current: ",", weight: 0.45322709163346614},
+			{previous: "ADP", current: "con", weight: 0.05},
+			{previous: "ADJ", current: "ganada", weight: 0.0002826455624646693},
+			{previous: "NOUN", current: "fama", weight: 0.00010413412475268145},
+			{previous: "ADP", current: "desde", weight: 0.007863849765258215},
+			{previous: "SCONJ", current: "que", weight: 0.6351590106007067},
+			{previous: "VERB", current: "llegó", weight: 0.001887237556027365},
+			{previous: "AUX", current: "hace", weight: 0.013861386138613862},
 		}
 
 		for _, em := range m.emissions[:10] {
@@ -165,16 +165,16 @@ func TestLoadModel(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err.Error())
 	} else {
 		var expt links = links{
-			{ previous: "<s>", current: "DET", weight: 0.3690260133091349 },
-			{ previous: "DET", current: "NOUN", weight: 0.7237326536391957 },
-			{ previous: "NOUN", current: "PUNCT", weight: 0.21732791835884618 },
-			{ previous: "PUNCT", current: "ADP", weight: 0.11075697211155379 },
-			{ previous: "ADP", current: "ADJ", weight: 0.020774647887323944 },
-			{ previous: "ADJ", current: "NOUN", weight: 0.215375918598078 },
-			{ previous: "NOUN", current: "ADP", weight: 0.3826929084661043 },
-			{ previous: "ADP", current: "SCONJ", weight: 0.01784037558685446 },
-			{ previous: "SCONJ", current: "VERB", weight: 0.15371024734982333 },
-			{ previous: "VERB", current: "AUX", weight: 0.008492569002123142 },
+			{previous: "<s>", current: "DET", weight: 0.3690260133091349},
+			{previous: "DET", current: "NOUN", weight: 0.7237326536391957},
+			{previous: "NOUN", current: "PUNCT", weight: 0.21732791835884618},
+			{previous: "PUNCT", current: "ADP", weight: 0.11075697211155379},
+			{previous: "ADP", current: "ADJ", weight: 0.020774647887323944},
+			{previous: "ADJ", current: "NOUN", weight: 0.215375918598078},
+			{previous: "NOUN", current: "ADP", weight: 0.3826929084661043},
+			{previous: "ADP", current: "SCONJ", weight: 0.01784037558685446},
+			{previous: "SCONJ", current: "VERB", weight: 0.15371024734982333},
+			{previous: "VERB", current: "AUX", weight: 0.008492569002123142},
 		}
 
 		for _, tm := range m.transitions[:10] {
@@ -190,16 +190,16 @@ func TestLoadModel(t *testing.T) {
 		}
 
 		var expe links = links{
-			{ previous: "DET", current: "El", weight: 0.04290569243840272, },
-			{ previous: "NOUN", current: "gobernante", weight: 0.0002082682495053629, },
-			{ previous: "PUNCT", current: ",", weight: 0.45322709163346614, },
-			{ previous: "ADP", current: "con", weight: 0.05, },
-			{ previous: "ADJ", current: "ganada", weight: 0.0002826455624646693, },
-			{ previous: "NOUN", current: "fama", weight: 0.00010413412475268145, },
-			{ previous: "ADP", current: "desde", weight: 0.007863849765258215, },
-			{ previous: "SCONJ", current: "que", weight: 0.6351590106007067, },
-			{ previous: "VERB", current: "llegó", weight: 0.001887237556027365, },
-			{ previous: "AUX", current: "hace", weight: 0.013861386138613862, },
+			{previous: "DET", current: "El", weight: 0.04290569243840272},
+			{previous: "NOUN", current: "gobernante", weight: 0.0002082682495053629},
+			{previous: "PUNCT", current: ",", weight: 0.45322709163346614},
+			{previous: "ADP", current: "con", weight: 0.05},
+			{previous: "ADJ", current: "ganada", weight: 0.0002826455624646693},
+			{previous: "NOUN", current: "fama", weight: 0.00010413412475268145},
+			{previous: "ADP", current: "desde", weight: 0.007863849765258215},
+			{previous: "SCONJ", current: "que", weight: 0.6351590106007067},
+			{previous: "VERB", current: "llegó", weight: 0.001887237556027365},
+			{previous: "AUX", current: "hace", weight: 0.013861386138613862},
 		}
 
 		for _, em := range m.emissions[:10] {
