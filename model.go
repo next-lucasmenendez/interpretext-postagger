@@ -199,21 +199,22 @@ func Train(p string) (m *Model, err error) {
 
 			var s sentence
 			for i, cdt := range cdts {
-				var (
-					g         = rtg.FindStringSubmatch(cdt)
-					r  string = g[1]
-					tg string = g[2]
-				)
+				if g := rtg.FindStringSubmatch(cdt); len(g) > 1 {
+					var (
+						r  string = g[1]
+						tg string = g[2]
+					)
 
-				var in bool = false
-				for _, t := range m.tags {
-					in = in || t == tg
-				}
-				if !in {
-					m.tags = append(m.tags, tg)
-				}
+					var in bool = false
+					for _, t := range m.tags {
+						in = in || t == tg
+					}
+					if !in {
+						m.tags = append(m.tags, tg)
+					}
 
-				s = append(s, &token{i, r, tg})
+					s = append(s, &token{i, r, tg})
+				}
 			}
 
 			if len(s) > 0 {
