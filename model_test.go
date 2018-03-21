@@ -17,7 +17,7 @@ func downloadCorpus(t *testing.T) bool {
 	} else {
 		defer fd.Close()
 
-		if r, e := http.Get("https://raw.githubusercontent.com/lucasmenendez/gopostagger/master/ancora"); e != nil {
+		if r, e := http.Get("https://raw.githubusercontent.com/lucasmenendez/gopostagger/master/es"); e != nil {
 			t.Errorf("Expected nil, got Error:'%s'", e)
 		} else {
 			defer r.Body.Close()
