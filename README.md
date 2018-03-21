@@ -33,7 +33,7 @@ AnCora | es | 0.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree
     func main() {
         var s string = "El mundo del tatuaje es la forma de representación artística más expresiva que puede existir para un artista, puesto que su obra permanece inalterable de por vida."
 
-        if m, e := gopostagger.LoadModel("./models/ancora"); e != nil {
+        if m, e := gopostagger.LoadModel("./models/es"); e != nil {
             fmt.Println(e)
         } else {
             var tagger *gopostagger.Tagger = gopostagger.NewTagger(m)
@@ -59,9 +59,9 @@ IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed`
     )
 
     func main() {
-        if m, e := gopostagger.Train("./corpus/ancora"); e != nil {
+        if m, e := gopostagger.Train("./es"); e != nil {
             fmt.Println(e)
-        } else if e = m.Store("./models/ancora"); e != nil {
+        } else if e = m.Store("./models/es"); e != nil {
             fmt.Println(e)
         } else {
             fmt.Println("Trained!")
