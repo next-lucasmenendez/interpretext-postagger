@@ -15,8 +15,8 @@ go get github.com/lucasmenendez/gopostagger
 
  Name | Language | Size | Link corpus
 ----- | ----- | ------ | ----
-Brown | en | 11.6 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/brown)
-AnCora | es | 0.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/ancora)
+Brown | en | 11.6 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/en)
+AnCora | es | 0.54 Mb | [Link](https://github.com/lucasmenendez/gopostagger/tree/master/es)
 
 ## Examples
 
