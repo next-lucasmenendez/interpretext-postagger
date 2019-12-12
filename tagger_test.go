@@ -1,4 +1,4 @@
-package gopostagger
+package postagger
 
 import "testing"
 

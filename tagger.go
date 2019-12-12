@@ -1,5 +1,5 @@
-// Package gopostagger contains HMM applied to Part-Of-Speech Tagging in Go.
-package gopostagger
+// Package postagger contains HMM applied to Part-Of-Speech Tagging in Go.
+package postagger
 
 import (
 	"sort"
