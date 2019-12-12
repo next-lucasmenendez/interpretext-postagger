@@ -53,7 +53,7 @@ IMPORTANT: All datasets must have the following format: `raw_word/tag_propossed`
     package main
 
     import (
-        "github.com/next-lucasmenendez/interpretext-postagger"
+        postagger "github.com/next-lucasmenendez/interpretext-postagger"
         "fmt"
     )
 
